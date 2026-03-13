@@ -1,7 +1,10 @@
 #!/bin/bash
 
-TAG=1_prod
+TAG="${BUILD_NUMBER}_prod"
+
 REPO=692366125125.dkr.ecr.ap-south-1.amazonaws.com/test-app
+
+echo "Tag = $TAG"
 
 docker build -t test-app .
 
