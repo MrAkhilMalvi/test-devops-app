@@ -3,7 +3,6 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TF_DIR="${TF_DIR:-$ROOT_DIR/terraform}"
 BUILD_DIR="${BUILD_DIR:-$ROOT_DIR/build}"
 METADATA_FILE="${METADATA_FILE:-$BUILD_DIR/image-metadata.env}"
 
@@ -56,35 +55,18 @@ resolve_image_tag() {
   next_tag_from_ecr
 }
 
-ensure_terraform_init() {
-  terraform -chdir="$TF_DIR" init -input=false
-}
-
-ensure_ecr_managed_by_terraform() {
-  if terraform -chdir="$TF_DIR" state list 2>/dev/null | grep -qx 'aws_ecr_repository.app'; then
-    log INFO "ECR repository is already tracked in Terraform state."
-    return
-  fi
-
+ensure_ecr_exists() {
   if aws ecr describe-repositories \
     --repository-names "$APP_NAME" \
     --region "$AWS_REGION" >/dev/null 2>&1; then
-    log INFO "ECR repository exists in AWS. Importing it into Terraform state."
-    terraform -chdir="$TF_DIR" import \
-      -var="app_name=$APP_NAME" \
-      -var="region=$AWS_REGION" \
-      aws_ecr_repository.app \
-      "$APP_NAME"
+    log INFO "ECR repository already exists."
     return
   fi
 
-  log INFO "ECR repository does not exist yet. Creating it with Terraform."
-  terraform -chdir="$TF_DIR" apply \
-    -input=false \
-    -auto-approve \
-    -target=aws_ecr_repository.app \
-    -var="app_name=$APP_NAME" \
-    -var="region=$AWS_REGION"
+  log INFO "ECR repository does not exist yet. Creating it with AWS CLI."
+  aws ecr create-repository \
+    --repository-name "$APP_NAME" \
+    --region "$AWS_REGION" >/dev/null
 }
 
 write_metadata() {
@@ -112,15 +94,12 @@ main() {
 
   require_command aws
   require_command docker
-  require_command terraform
-
   log INFO "Checking AWS CLI access and Docker availability."
   account_id="$(aws sts get-caller-identity --query 'Account' --output text)"
   docker info >/dev/null
 
-  log INFO "Initializing Terraform and ensuring ECR exists."
-  ensure_terraform_init
-  ensure_ecr_managed_by_terraform
+  log INFO "Ensuring ECR exists."
+  ensure_ecr_exists
 
   repository_url="$(aws ecr describe-repositories \
     --repository-names "$APP_NAME" \
