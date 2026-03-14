@@ -2,7 +2,7 @@
 
 TAG="${BUILD_NUMBER}_prod"
 
-REPO=123456789.dkr.ecr.ap-south-1.amazonaws.com/test-app
+REPO=692366125125.dkr.ecr.ap-south-1.amazonaws.com/test-app
 
 IMAGE="$REPO:$TAG"
 
@@ -17,7 +17,7 @@ docker build -t test-app .
 aws ecr get-login-password --region ap-south-1 \
 | docker login \
 --username AWS \
---password-stdin 123456789.dkr.ecr.ap-south-1.amazonaws.com
+--password-stdin 692366125125.dkr.ecr.ap-south-1.amazonaws.com
 
 docker tag test-app:latest $IMAGE
 
