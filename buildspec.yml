@@ -1,0 +1,25 @@
+version: 0.2
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - echo "Starting CI/CD pipeline for ${APP_NAME:-test-app}"
+      - chmod +x bin/build.sh bin/postbuild.sh
+  pre_build:
+    commands:
+      - echo "Jenkins trigger received from GitHub push"
+      - echo "Build number: ${BUILD_NUMBER:-manual}"
+      - echo "Region: ${AWS_REGION:-ap-south-1}"
+  build:
+    commands:
+      - ./bin/build.sh
+  post_build:
+    commands:
+      - ./bin/postbuild.sh
+
+artifacts:
+  files:
+    - build/image-metadata.env
