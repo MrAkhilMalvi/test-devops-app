@@ -10,6 +10,7 @@ APP_NAME="${APP_NAME:-test-app}"
 AWS_REGION="${AWS_REGION:-ap-south-1}"
 ENV_SUFFIX="${ENV_SUFFIX:-prod}"
 
+
 log() {
   printf '\n[%s] %s\n' "$1" "$2"
 }
