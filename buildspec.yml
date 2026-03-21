@@ -6,16 +6,25 @@ env:
 phases:
   install:
     commands:
-      - echo "Starting CI/CD pipeline for ${APP_NAME:-test-app}"
+      - echo "Installing terraform"
+      - apt-get update -y
+      - apt-get install -y wget unzip
+
+      - wget https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip
+      - unzip terraform_1.6.6_linux_amd64.zip
+      - mv terraform /usr/local/bin/
+      - terraform -version
+
       - chmod +x bin/build.sh bin/postbuild.sh
+
   pre_build:
     commands:
-      - echo "Jenkins trigger received from GitHub push"
-      - echo "Build number: ${BUILD_NUMBER:-manual}"
-      - echo "Region: ${AWS_REGION:-ap-south-1}"
+      - echo "Build ${BUILD_NUMBER}"
+
   build:
     commands:
       - ./bin/build.sh
+
   post_build:
     commands:
       - ./bin/postbuild.sh

@@ -85,14 +85,16 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 resource "aws_ecs_service" "app" {
-  name                               = local.service_name
-  cluster                            = aws_ecs_cluster.main.id
-  task_definition                    = aws_ecs_task_definition.app.arn
-  desired_count                      = var.desired_count
-  launch_type                        = "EC2"
-  deployment_minimum_healthy_percent = 0
-  deployment_maximum_percent         = 100
-  force_new_deployment               = true
+  name            = local.service_name
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = var.desired_count
+
+  launch_type = "EC2"
+
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
 
   depends_on = [
     aws_cloudwatch_log_group.app,
